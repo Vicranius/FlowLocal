@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FlowLocal — dictation that runs on your PC</title>
+<meta name="description" content="FlowLocal is a free Windows dictation app. Hold Ctrl + Win, speak, and your words are typed where you were working. The speech model runs on your own graphics card — offline, private, no account.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFFFFF">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
+<meta property="og:type" content="website">
+<meta property="og:title" content="FlowLocal — dictation that runs on your PC">
+<meta property="og:description" content="Hold Ctrl + Win, say it, let go. Free Windows dictation that runs on your own graphics card — nothing leaves your computer.">
+<link rel="icon" href="./icon.png" type="image/png">
+<script>
+/* Set the theme before first paint: saved choice, else the system preference. */
+(function(){var t;try{t=sessionStorage.getItem('fl-theme')}catch(e){}if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t)})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;--bg:#FFFFFF;--surface:#F5F5F7;--surface2:#E8E8ED;--ink:#1D1D1F;--ink2:#6E6E73;--line:#D2D2D7;--glassRim:rgba(255,255,255,0.7);--glassHi:rgba(255,255,255,0.9);--btnRim:rgba(0,0,0,0.55);--glassFill:rgba(255,255,255,0.62);--glassTop:rgba(255,255,255,0.9);--badgeRim:rgba(0,0,0,0.10)}
+[data-theme=dark]{color-scheme:dark;--bg:#000000;--surface:#141416;--surface2:#1C1C1F;--ink:#F5F5F7;--ink2:#A1A1A6;--line:#2C2C2E;--glassRim:rgba(255,255,255,0.16);--glassHi:rgba(255,255,255,0.22);--btnRim:rgba(255,255,255,0.26);--glassFill:rgba(255,255,255,0.06);--glassTop:rgba(255,255,255,0.10);--badgeRim:rgba(255,255,255,0.16)}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.a-skip{position:absolute;left:12px;top:-60px;z-index:20;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;text-decoration:none;font-weight:600}
+.a-skip:focus{top:12px}
+section[id]{scroll-margin-top:64px}
+.a-wrap{max-width:1120px;margin:0 auto;padding:0 32px;box-sizing:border-box}
+.a-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.a-dl{display:grid;grid-template-columns:2fr 1fr 1fr;gap:20px}
+.a-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.a-four{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+@media (max-width:900px){.a-four{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.a-groups{grid-template-columns:minmax(0,1fr)}}
+.a-flow{display:grid;grid-template-columns:minmax(0,1fr) 64px minmax(0,1fr) 64px minmax(0,1fr);align-items:center}
+.a-cmp{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);gap:0}
+.a-cmp>div{padding:20px 0;border-top:1px solid var(--line);font-size:16px;line-height:1.45}
+.a-key{display:inline-flex;align-items:center;justify-content:center;min-width:52px;height:42px;padding:0 14px;border-radius:10px;background:var(--surface);border:1px solid var(--line);box-shadow:0 2px 0 var(--line);font:500 15px/1 'Geist Mono',monospace;color:var(--ink);box-sizing:border-box}
+.a-key-sm{min-width:44px;height:36px;font-size:14px;border-radius:9px}
+.a-nav{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:saturate(180%) blur(18px);-webkit-backdrop-filter:saturate(180%) blur(18px);border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.a-nav a{text-decoration:none;color:var(--ink2);font-size:14px}
+.a-nav a:hover{color:var(--ink)}
+/* Clickable = FlowLocal's own yellow and black (the app icon); the in-app pill stays white. */
+.a-btn{background:linear-gradient(180deg,#FFD036,#FFB60A);color:#111111 !important;text-decoration:none;border-radius:999px;padding:15px 26px;font-size:17px;font-weight:600;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.a-btn:hover{filter:brightness(1.05)}
+.a-link{color:var(--ink) !important;text-decoration:none;font-size:17px;padding:15px 8px;border-bottom:2px solid #FFB60A}
+.a-nav-dl{background:linear-gradient(180deg,#FFD036,#FFB60A);color:#111111 !important;border-radius:999px;padding:9px 16px;font-weight:600}
+.a-bar{width:2.5px;border-radius:2px;background:#F5F5F7;animation:a-wave 1.1s ease-in-out infinite}
+@keyframes a-wave{0%,100%{transform:scaleY(.45)}50%{transform:scaleY(1)}}
+@keyframes a-in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.a-load{animation:a-in .9s cubic-bezier(.2,.7,.2,1) both}
+/* Pinned sections: viewport units, sticky stage below the 64px nav. */
+.a-story{position:relative;height:320vh}
+.a-stage{position:sticky;top:64px;height:calc(100vh - 64px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px}
+.a-reveal{position:relative;height:180vh}
+.a-reveal-in{position:sticky;top:64px;height:calc(100vh - 64px);display:flex;align-items:center}
+.a-word{opacity:1}
+.a-cap2,.a-cap3{opacity:0;transform:translateY(14px)}
+.a-theme-sun{display:none}
+[data-theme=dark] .a-theme-sun{display:block}
+[data-theme=dark] .a-theme-moon{display:none}
+@media (max-width:760px){.a-three,.a-dl,.a-cmp{grid-template-columns:minmax(0,1fr)}.a-flow{grid-template-columns:minmax(0,1fr)}.a-flow-line{display:none}.a-flow>div+div{margin-top:12px}.a-hide{display:none}.a-h1{font-size:60px !important}.a-h2{font-size:40px !important}.a-cmp-head{display:none}
+  .a-cmp>div:nth-child(3n+2),.a-cmp>div:nth-child(3n){border-top:0;padding:0 0 10px}
+  .a-cmp>div:nth-child(3n+1){padding-bottom:6px}
+  .a-cmp>div:nth-child(3n+2)::before{content:"Cloud dictation apps: ";font-size:13px}
+  .a-cmp>div:nth-child(3n)::before{content:"FlowLocal: ";font-size:13px;font-weight:400}}
+
+/* Scroll-linked motion (Chromium, Safari 26): everything rests at its final look elsewhere. */
+@supports (animation-timeline: view()) {
+  .a-rise{animation:a-rise linear both;animation-timeline:view();animation-range:entry 5% entry 70%}
+  @keyframes a-rise{from{opacity:0;transform:translateY(48px) scale(.98)}to{opacity:1;transform:none}}
+  .a-shot{animation:a-shot linear both;animation-timeline:view();animation-range:entry 0% cover 45%}
+  @keyframes a-shot{from{transform:scale(.9) translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+  .a-line{transform-origin:left center;animation:a-line linear both;animation-timeline:view();animation-range:entry 30% cover 50%}
+  @keyframes a-line{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  .a-drift-l{animation:a-drift-l linear both;animation-timeline:view();animation-range:cover 0% cover 100%}
+  .a-drift-r{animation:a-drift-r linear both;animation-timeline:view();animation-range:cover 0% cover 100%}
+  @keyframes a-drift-l{from{transform:translateX(8%)}to{transform:translateX(-22%)}}
+  @keyframes a-drift-r{from{transform:translateX(-22%)}to{transform:translateX(8%)}}
+
+  .a-story{view-timeline-name:--story}
+  .a-cap{animation-timeline:--story;animation-range:contain 0% contain 100%;animation-timing-function:linear;animation-fill-mode:both}
+  .a-cap1{animation-name:a-cap1}.a-cap2{animation-name:a-cap2}.a-cap3{animation-name:a-cap3}
+  @keyframes a-cap1{0%,18%{opacity:1;transform:none}26%,100%{opacity:0;transform:translateY(-14px)}}
+  @keyframes a-cap2{0%,22%{opacity:0;transform:translateY(14px)}30%,64%{opacity:1;transform:none}72%,100%{opacity:0;transform:translateY(-14px)}}
+  @keyframes a-cap3{0%,68%{opacity:0;transform:translateY(14px)}76%,100%{opacity:1;transform:none}}
+  .a-press{animation:a-press linear both;animation-timeline:--story;animation-range:contain 0% contain 100%}
+  @keyframes a-press{0%,8%{transform:none;background:var(--surface);color:var(--ink);box-shadow:0 2px 0 var(--line)}12%,68%{transform:translateY(2px);background:var(--ink);color:var(--bg);box-shadow:0 0 0 var(--line)}72%,100%{transform:none;background:var(--surface);color:var(--ink);box-shadow:0 2px 0 var(--line)}}
+  .a-idle{animation:a-idle linear both;animation-timeline:--story;animation-range:contain 0% contain 100%}
+  @keyframes a-idle{0%,12%{opacity:1;transform:translate(-50%,0) scale(1)}18%,70%{opacity:0;transform:translate(-50%,0) scale(1.6)}76%,100%{opacity:1;transform:translate(-50%,0) scale(1)}}
+  .a-cap-pill{animation:a-pill linear both;animation-timeline:--story;animation-range:contain 0% contain 100%}
+  @keyframes a-pill{0%,12%{opacity:0;transform:translate(-50%,0) scale(.35)}20%,68%{opacity:1;transform:translate(-50%,0) scale(1)}76%,100%{opacity:0;transform:translate(-50%,0) scale(.35)}}
+  .a-word{animation:a-word linear both;animation-timeline:--story}
+  @keyframes a-word{from{opacity:0;filter:blur(4px)}to{opacity:1;filter:none}}
+
+  .a-reveal{view-timeline-name:--reveal}
+  .a-rword{animation:a-rword linear both;animation-timeline:--reveal}
+  @keyframes a-rword{from{opacity:.16}to{opacity:1}}
+}
+/* Liquid Glass: frosted, see-through controls with a specular top edge; the primary button is polished yellow
+   (solid, a hair of gradient, crisp 1px top highlight, tight shadow). */
+.a-glass .a-btn,.a-glass .a-nav-dl{color:#111111 !important;background:linear-gradient(180deg,#FFCB2E 0%,#FFBA12 100%);border:1px solid rgba(120,70,0,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 1px 2px rgba(0,0,0,.18),0 4px 12px rgba(200,130,0,.16)}
+.a-glass .a-btn:hover,.a-glass .a-nav-dl:hover{background:linear-gradient(180deg,#FFD13F 0%,#FFC020 100%)}
+.a-glass .a-btn:active{transform:translateY(1px);box-shadow:inset 0 1px 2px rgba(120,70,0,.25)}
+.a-glass .a-ghost{background:color-mix(in srgb,var(--bg) 45%,transparent) !important;-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);border:1px solid var(--glassRim) !important;box-shadow:inset 0 1px 0 var(--glassHi),0 6px 18px rgba(0,0,0,.08)}
+.a-glass .a-link{border-bottom:none;border-radius:999px;padding:14px 22px;background:color-mix(in srgb,var(--bg) 45%,transparent);-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);border:1px solid var(--glassRim);box-shadow:inset 0 1px 0 var(--glassHi),0 6px 18px rgba(0,0,0,.08)}
+/* Hero badge: a clear glass capsule; the green "ready" dot breathes like a live indicator. */
+.a-glass .a-badge{background:linear-gradient(180deg,var(--glassTop),transparent 70%),var(--glassFill);-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);border-color:var(--badgeRim) !important;box-shadow:inset 0 1px 0 var(--glassHi),inset 0 -1px 0 rgba(0,0,0,.04),0 6px 18px rgba(0,0,0,.08)}
+.a-live{position:relative;width:7px;height:7px;border-radius:999px;background:#3CCFA5;animation:a-live 1.8s ease-in-out infinite}
+.a-live::after{content:"";position:absolute;inset:0;border-radius:999px;background:#3CCFA5;animation:a-ping 1.8s ease-out infinite}
+@keyframes a-live{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes a-ping{0%{transform:scale(1);opacity:.55}80%,100%{transform:scale(3);opacity:0}}
+.a-glass .a-card{background:color-mix(in srgb,var(--surface) 70%,transparent) !important;border:1px solid var(--glassRim);box-shadow:inset 0 1px 0 var(--glassHi)}
+/* The floating pill is the one that listens during the story: no second pill in the mock. */
+
+.a-float{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:10;height:44px;width:200px;pointer-events:none}
+.a-float-idle{position:absolute;left:50%;top:50%;margin:-6px 0 0 -28px;width:56px;height:12px;border-radius:6px;background:rgba(22,22,22,.9);border:1px solid rgba(255,255,255,.65);box-shadow:0 6px 18px rgba(0,0,0,.25);box-sizing:border-box}
+.a-float-rec{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);opacity:0;visibility:hidden;height:36px;padding:0 6px;border-radius:999px;background:#000;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px;box-shadow:0 14px 34px rgba(0,0,0,.3)}
+.a-float.gone{opacity:0;visibility:hidden;transform:translate(-50%,30px);transition:opacity .25s,transform .25s,visibility .25s}
+@supports (animation-timeline: view()) {
+  .a-glass{timeline-scope:--story,--dl}
+  .a-dlsec{view-timeline-name:--dl}
+  .a-float{animation:a-float-out linear both;animation-timeline:--dl;animation-range:entry 0% entry 35%}
+  @keyframes a-float-out{from{opacity:1;transform:translateX(-50%)}to{opacity:0;transform:translate(-50%,30px);visibility:hidden}}
+  .a-float-idle{animation:a-fl-idle linear both;animation-timeline:--story;animation-range:contain 0% contain 100%}
+  @keyframes a-fl-idle{0%,10%{opacity:1;transform:scale(1)}16%,72%{opacity:0;transform:scale(1.8)}78%,100%{opacity:1;transform:scale(1)}}
+  .a-float-rec{animation:a-fl-rec linear both;animation-timeline:--story;animation-range:contain 0% contain 100%}
+  @keyframes a-fl-rec{0%,10%{opacity:0;visibility:hidden;transform:translate(-50%,-50%) scale(.5)}16%,72%{opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1)}78%,100%{opacity:0;visibility:hidden;transform:translate(-50%,-50%) scale(.5)}}
+}
+
+/* JS fallback (no scroll-driven animations, e.g. Firefox): html.fb is set by the script; progress is written to --p. */
+.fb .a-rise,.fb .a-shot{opacity:0;transform:translateY(40px);transition:opacity .7s,transform .7s}
+.fb .a-rise.in,.fb .a-shot.in{opacity:1;transform:none}
+.fb .a-line{transform:scaleX(0);transform-origin:left center;transition:transform .8s .25s}
+.fb .in .a-line{transform:none}
+.fb .a-word,.fb .a-rword{transition:opacity .25s,filter .25s}
+.fb .a-word{opacity:0;filter:blur(4px)}
+.fb .a-rword{opacity:.16}
+.fb .a-word.on,.fb .a-rword.on{opacity:1;filter:none}
+.fb .a-cap{transition:opacity .4s,transform .4s}
+.fb .a-cap1{opacity:1;transform:none}
+.fb [data-cap="2"] .a-cap1,.fb [data-cap="3"] .a-cap1,.fb [data-cap="3"] .a-cap2{opacity:0;transform:translateY(-14px)}
+.fb [data-cap="2"] .a-cap2,.fb [data-cap="3"] .a-cap3{opacity:1;transform:none}
+.fb .a-press{transition:transform .2s,background .2s,color .2s,box-shadow .2s}
+.fb .a-story.press .a-press{transform:translateY(2px);background:var(--ink);color:var(--bg);box-shadow:0 0 0 var(--line)}
+.fb .a-float-idle,.fb .a-float-rec{transition:opacity .3s,transform .3s,visibility .3s}
+.fb .a-float.rec .a-float-idle{opacity:0;transform:scale(1.8)}
+.fb .a-float.rec .a-float-rec{opacity:1;visibility:visible;transform:translate(-50%,-50%)}
+
+/* Reduced motion: no motion, everything in its final state. */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+  .a-cap{position:static !important;opacity:1 !important;transform:none !important;margin-bottom:12px}
+  .a-stage>div:first-child{height:auto !important}
+}
+</style>
+</head>
+<body>
+<a class="a-skip" href="#main">Skip to content</a>
+<div class="a-glass">
+
+<!-- nav -->
+<header class="a-nav">
+  <nav class="a-wrap" aria-label="Main" style="display: flex; align-items: center; justify-content: space-between; height: 64px">
+    <a href="#top" style="display: flex; align-items: center; gap: 10px; color: var(--ink); font-weight: 600; font-size: 16px">
+      <img src="./icon.png" alt="FlowLocal logo" width="28" height="28" style="display: block">
+      FlowLocal
+    </a>
+    <div style="display: flex; align-items: center; gap: 28px">
+      <a class="a-hide" href="#how">How it works</a>
+      <a class="a-hide" href="#local">On your PC</a>
+      <a class="a-hide" href="#languages">Languages</a>
+      <a class="a-nav-dl" href="#download">Download</a>
+      <button type="button" id="theme" class="a-ghost" aria-label="Switch light or dark mode" aria-pressed="false" style="width: 44px; height: 44px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg class="a-theme-sun" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"></path></svg>
+        <svg class="a-theme-moon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"></path></svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main id="main">
+
+<!-- hero -->
+<section id="top" class="a-wrap" style="padding-top: 104px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 22px">
+  <div class="a-load a-badge" style="display: inline-flex; align-items: center; gap: 9px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 15px 8px 13px; font-size: 14px; color: var(--ink2)">
+    <span class="a-live" aria-hidden="true"></span>Runs 100% on your PC — no cloud, no account
+  </div>
+  <h1 class="a-h1 a-load" style="margin: 0; font-size: 120px; line-height: 0.94; font-weight: 600; letter-spacing: -0.05em; animation-delay: .08s">Talk. It types.</h1>
+  <p class="a-load" style="margin: 0; max-width: 640px; font-size: 21px; line-height: 1.45; color: var(--ink2); animation-delay: .16s">Hold Ctrl + Win, say it, let go. FlowLocal writes it into whatever you were typing in. The speech model runs on your own graphics card, so your voice never leaves the computer.</p>
+  <div class="a-load" style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap; justify-content: center; margin-top: 8px; animation-delay: .24s">
+    <a class="a-btn" href="#download">Download for Windows</a>
+    <a class="a-link" href="#how">See how it works →</a>
+  </div>
+  <div class="a-load" style="font-size: 13px; color: var(--ink2); animation-delay: .3s">Free · Windows 10 and 11 · version [0.3.0]</div>
+</section>
+
+<!-- product shot -->
+<div class="a-wrap" style="padding-top: 72px">
+  <div class="a-shot" aria-hidden="true" style="position: relative; border-radius: 28px; background: var(--surface); border: 1px solid var(--line); height: 480px; overflow: hidden">
+    <div style="position: absolute; left: 50%; top: 80px; transform: translateX(-50%); width: min(580px, 86%); background: var(--bg); border: 1px solid var(--line); border-radius: 18px; padding: 22px 24px; box-sizing: border-box; box-shadow: 0 20px 50px rgba(0,0,0,0.06)">
+      <div style="font-size: 13px; color: var(--ink2); margin-bottom: 10px">Message</div>
+      <div style="font-size: 20px; line-height: 1.5">Can we move the design review to Thursday at 3? I'd like Selin to join<span style="display: inline-block; width: 2px; height: 22px; background: var(--ink); vertical-align: -4px; margin-left: 2px"></span></div>
+    </div>
+    <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 52px; background: var(--surface2); border-top: 1px solid var(--line)"></div>
+    <div style="position: absolute; left: 50%; bottom: 66px; transform: translateX(-50%); height: 34px; padding: 0 5px; border-radius: 999px; background: #000000; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; box-shadow: 0 12px 30px rgba(0,0,0,0.28)">
+      <span style="width: 24px; height: 24px; border-radius: 999px; background: #4D4D4D; display: inline-flex; align-items: center; justify-content: center"><svg width="8" height="8" viewBox="0 0 8 8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l6 6M7 1L1 7"></path></svg></span>
+      <span style="display: flex; align-items: center; gap: 3px; height: 20px"><span class="a-bar" style="height:6px;animation-delay:0s"></span><span class="a-bar" style="height:10px;animation-delay:-0.13s"></span><span class="a-bar" style="height:16px;animation-delay:-0.26s"></span><span class="a-bar" style="height:12px;animation-delay:-0.39s"></span><span class="a-bar" style="height:20px;animation-delay:-0.52s"></span><span class="a-bar" style="height:14px;animation-delay:-0.65s"></span><span class="a-bar" style="height:8px;animation-delay:-0.78s"></span><span class="a-bar" style="height:18px;animation-delay:0s"></span><span class="a-bar" style="height:12px;animation-delay:-0.13s"></span><span class="a-bar" style="height:16px;animation-delay:-0.26s"></span><span class="a-bar" style="height:9px;animation-delay:-0.39s"></span><span class="a-bar" style="height:13px;animation-delay:-0.52s"></span><span class="a-bar" style="height:7px;animation-delay:-0.65s"></span><span class="a-bar" style="height:5px;animation-delay:-0.78s"></span></span>
+      <span style="width: 24px; height: 24px; border-radius: 999px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="11" height="9" viewBox="0 0 10 8" fill="none" stroke="#000000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4l3 3 5-6"></path></svg></span>
+    </div>
+  </div>
+</div>
+
+<!-- scroll story: hold, speak, release -->
+<section id="how" class="a-story" style="margin-top: 120px">
+  <div class="a-stage a-wrap">
+    <div style="position: relative; height: 130px; width: 100%; text-align: center">
+      <div class="a-cap a-cap1" style="position: absolute; inset: 0"><div style="font-size: 15px; color: var(--ink2)">Step 1</div><h2 class="a-h2" style="margin: 8px 0 0; font-size: 60px; line-height: 1.02; font-weight: 600; letter-spacing: -0.04em">Hold two keys.</h2></div>
+      <div class="a-cap a-cap2" style="position: absolute; inset: 0"><div style="font-size: 15px; color: var(--ink2)">Step 2</div><h2 class="a-h2" style="margin: 8px 0 0; font-size: 60px; line-height: 1.02; font-weight: 600; letter-spacing: -0.04em">Say what you mean.</h2></div>
+      <div class="a-cap a-cap3" style="position: absolute; inset: 0"><div style="font-size: 15px; color: var(--ink2)">Step 3</div><h2 class="a-h2" style="margin: 8px 0 0; font-size: 60px; line-height: 1.02; font-weight: 600; letter-spacing: -0.04em">Let go. It's typed.</h2></div>
+    </div>
+    <div aria-hidden="true" style="position: relative; width: min(720px, 100%); height: 400px; border-radius: 28px; background: var(--surface); border: 1px solid var(--line); overflow: hidden">
+      <div style="position: absolute; left: 50%; top: 48px; transform: translateX(-50%); width: min(560px, 88%); background: var(--bg); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; box-sizing: border-box; min-height: 128px">
+        <div style="font-size: 13px; color: var(--ink2); margin-bottom: 8px">Reply to Deniz</div>
+        <div style="font-size: 19px; line-height: 1.5"><span class="a-word" data-s="0.260" style="animation-range: contain 26.0% contain 29.0%">Sure </span><span class="a-word" data-s="0.287" style="animation-range: contain 28.7% contain 31.7%">— </span><span class="a-word" data-s="0.313" style="animation-range: contain 31.3% contain 34.3%">Thursday </span><span class="a-word" data-s="0.340" style="animation-range: contain 34.0% contain 37.0%">at </span><span class="a-word" data-s="0.367" style="animation-range: contain 36.7% contain 39.7%">3 </span><span class="a-word" data-s="0.393" style="animation-range: contain 39.3% contain 42.3%">works. </span><span class="a-word" data-s="0.420" style="animation-range: contain 42.0% contain 45.0%">I'll </span><span class="a-word" data-s="0.447" style="animation-range: contain 44.7% contain 47.7%">book </span><span class="a-word" data-s="0.473" style="animation-range: contain 47.3% contain 50.3%">the </span><span class="a-word" data-s="0.500" style="animation-range: contain 50.0% contain 53.0%">room </span><span class="a-word" data-s="0.527" style="animation-range: contain 52.7% contain 55.7%">and </span><span class="a-word" data-s="0.553" style="animation-range: contain 55.3% contain 58.3%">send </span><span class="a-word" data-s="0.580" style="animation-range: contain 58.0% contain 61.0%">Selin </span><span class="a-word" data-s="0.607" style="animation-range: contain 60.7% contain 63.7%">the </span><span class="a-word" data-s="0.633" style="animation-range: contain 63.3% contain 66.3%">invite. </span></div>
+      </div>
+      <div style="position: absolute; left: 50%; top: 214px; transform: translateX(-50%); display: flex; gap: 10px; align-items: center">
+        <span class="a-key a-press">Ctrl</span><span style="color: var(--ink2)">+</span><span class="a-key a-press">Win</span>
+      </div>
+      <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 48px; background: var(--surface2); border-top: 1px solid var(--line)"></div>
+    </div>
+  </div>
+</section>
+
+<!-- local: the difference -->
+<section id="local" class="a-reveal" aria-label="Why FlowLocal runs on your PC">
+  <div class="a-reveal-in a-wrap">
+    <p class="a-h2" style="margin: 0; font-size: 58px; line-height: 1.12; font-weight: 600; letter-spacing: -0.035em"><span class="a-rword" data-s="0.100" style="animation-range: contain 10.0% contain 14.0%">Other </span><span class="a-rword" data-s="0.119" style="animation-range: contain 11.9% contain 15.9%">dictation </span><span class="a-rword" data-s="0.139" style="animation-range: contain 13.9% contain 17.9%">apps </span><span class="a-rword" data-s="0.158" style="animation-range: contain 15.8% contain 19.8%">upload </span><span class="a-rword" data-s="0.177" style="animation-range: contain 17.7% contain 21.7%">your </span><span class="a-rword" data-s="0.197" style="animation-range: contain 19.7% contain 23.7%">voice </span><span class="a-rword" data-s="0.216" style="animation-range: contain 21.6% contain 25.6%">to </span><span class="a-rword" data-s="0.235" style="animation-range: contain 23.5% contain 27.5%">a </span><span class="a-rword" data-s="0.255" style="animation-range: contain 25.5% contain 29.5%">server </span><span class="a-rword" data-s="0.274" style="animation-range: contain 27.4% contain 31.4%">and </span><span class="a-rword" data-s="0.294" style="animation-range: contain 29.4% contain 33.4%">bill </span><span class="a-rword" data-s="0.313" style="animation-range: contain 31.3% contain 35.3%">you </span><span class="a-rword" data-s="0.332" style="animation-range: contain 33.2% contain 37.2%">every </span><span class="a-rword" data-s="0.352" style="animation-range: contain 35.2% contain 39.2%">month. </span><span class="a-rword" data-s="0.371" style="animation-range: contain 37.1% contain 41.1%">FlowLocal </span><span class="a-rword" data-s="0.390" style="animation-range: contain 39.0% contain 43.0%">runs </span><span class="a-rword" data-s="0.410" style="animation-range: contain 41.0% contain 45.0%">the </span><span class="a-rword" data-s="0.429" style="animation-range: contain 42.9% contain 46.9%">same </span><span class="a-rword" data-s="0.448" style="animation-range: contain 44.8% contain 48.8%">kind </span><span class="a-rword" data-s="0.468" style="animation-range: contain 46.8% contain 50.8%">of </span><span class="a-rword" data-s="0.487" style="animation-range: contain 48.7% contain 52.7%">model </span><span class="a-rword" data-s="0.506" style="animation-range: contain 50.6% contain 54.6%">on </span><span class="a-rword" data-s="0.526" style="animation-range: contain 52.6% contain 56.6%">your </span><span class="a-rword" data-s="0.545" style="animation-range: contain 54.5% contain 58.5%">own </span><span class="a-rword" data-s="0.565" style="animation-range: contain 56.5% contain 60.5%">graphics </span><span class="a-rword" data-s="0.584" style="animation-range: contain 58.4% contain 62.4%">card </span><span class="a-rword" data-s="0.603" style="animation-range: contain 60.3% contain 64.3%">— </span><span class="a-rword" data-s="0.623" style="animation-range: contain 62.3% contain 66.3%">offline, </span><span class="a-rword" data-s="0.642" style="animation-range: contain 64.2% contain 68.2%">private </span><span class="a-rword" data-s="0.661" style="animation-range: contain 66.1% contain 70.1%">and </span><span class="a-rword" data-s="0.681" style="animation-range: contain 68.1% contain 72.1%">free. </span></p>
+  </div>
+</section>
+
+<section class="a-wrap" aria-label="How your voice travels" style="padding-top: 40px">
+  <div class="a-flow a-rise" style="gap: 0">
+    <div style="background: var(--surface); border-radius: 22px; padding: 26px; text-align: center"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"></path></svg><div style="font-size: 17px; font-weight: 600; margin-top: 12px">Your microphone</div><div style="font-size: 14px; color: var(--ink2); margin-top: 4px">Held in memory only</div></div>
+    <div class="a-flow-line" aria-hidden="true" style="height: 2px; background: var(--line); margin: 0 10px"><div class="a-line" style="height: 2px; background: var(--ink)"></div></div>
+    <div style="background: var(--ink); color: var(--bg); border-radius: 22px; padding: 26px; text-align: center"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2.5"></rect><path d="M7 10h4v4H7zM14 10h3M14 14h3"></path></svg><div style="font-size: 17px; font-weight: 600; margin-top: 12px">Your graphics card</div><div style="font-size: 14px; opacity: .7; margin-top: 4px">Whisper large-v3 turns speech into text</div></div>
+    <div class="a-flow-line" aria-hidden="true" style="height: 2px; background: var(--line); margin: 0 10px"><div class="a-line" style="height: 2px; background: var(--ink)"></div></div>
+    <div style="background: var(--surface); border-radius: 22px; padding: 26px; text-align: center"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"></rect><path d="M7.5 10h9M7.5 14h5"></path></svg><div style="font-size: 17px; font-weight: 600; margin-top: 12px">The app you're in</div><div style="font-size: 14px; color: var(--ink2); margin-top: 4px">Chat, mail, docs, code, terminal</div></div>
+  </div>
+  <div class="a-rise" style="margin-top: 22px; text-align: center; font-size: 15px; color: var(--ink2)">
+    <span style="text-decoration: line-through">The internet</span> — not part of the trip.
+  </div>
+</section>
+
+<!-- comparison -->
+<section class="a-wrap" style="padding-top: 150px">
+  <h2 class="a-h2 a-rise" style="margin: 0 0 14px; font-size: 56px; line-height: 1.02; font-weight: 600; letter-spacing: -0.035em; text-align: center">Why local beats the cloud.</h2>
+  <p class="a-rise" style="margin: 0 auto 44px; max-width: 600px; text-align: center; font-size: 19px; line-height: 1.5; color: var(--ink2)">Most dictation apps record you and send the audio to their servers. FlowLocal does the same work on your PC.</p>
+  <div class="a-cmp a-rise">
+    <div class="a-cmp-head" style="color: var(--ink2); font-size: 14px"></div>
+    <div class="a-cmp-head" style="color: var(--ink2); font-size: 14px">Cloud dictation apps</div>
+    <div class="a-cmp-head" style="font-size: 14px; font-weight: 600">FlowLocal</div>
+      <div style="color: var(--ink2)">Where speech is processed</div>
+      <div style="color: var(--ink2)">On the company's servers</div>
+      <div style="font-weight: 600">On your graphics card</div>
+      <div style="color: var(--ink2)">Your recordings</div>
+      <div style="color: var(--ink2)">Uploaded with every sentence</div>
+      <div style="font-weight: 600">Never leave memory, never saved</div>
+      <div style="color: var(--ink2)">Internet</div>
+      <div style="color: var(--ink2)">Needed every time you talk</div>
+      <div style="font-weight: 600">Once, to download a model</div>
+      <div style="color: var(--ink2)">Account</div>
+      <div style="color: var(--ink2)">Required</div>
+      <div style="font-weight: 600">None</div>
+      <div style="color: var(--ink2)">Price</div>
+      <div style="color: var(--ink2)">A monthly subscription or a word cap</div>
+      <div style="font-weight: 600">Free, no limits</div>
+      <div style="color: var(--ink2)">When their servers are down</div>
+      <div style="color: var(--ink2)">Dictation stops</div>
+      <div style="font-weight: 600">Nothing changes</div>
+  </div>
+</section>
+
+<!-- three ways -->
+<section class="a-wrap" style="padding-top: 150px">
+  <h2 class="a-h2 a-rise" style="margin: 0 0 12px; font-size: 56px; line-height: 1.02; font-weight: 600; letter-spacing: -0.035em; text-align: center">Two keys. Three ways.</h2>
+  <p class="a-rise" style="margin: 0 auto 48px; max-width: 560px; text-align: center; font-size: 19px; color: var(--ink2); line-height: 1.5">No window to open, nothing to click. A small pill above the taskbar shows when it listens.</p>
+  <div class="a-three">
+      <div class="a-rise a-card" style="background: var(--surface); border-radius: 24px; padding: 32px; display: flex; flex-direction: column; gap: 14px; min-height: 250px; box-sizing: border-box">
+        <div style="display: flex; gap: 6px; align-items: center" aria-hidden="true"><span class="a-key a-key-sm">Ctrl</span><span class="a-key a-key-sm">Win</span></div>
+        <h3 style="margin: auto 0 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">Hold to talk</h3>
+        <p style="margin: 0; font-size: 16px; line-height: 1.5; color: var(--ink2)">Speak while you hold the keys. Let go and the text appears where your cursor is.</p>
+      </div>
+      <div class="a-rise a-card" style="background: var(--surface); border-radius: 24px; padding: 32px; display: flex; flex-direction: column; gap: 14px; min-height: 250px; box-sizing: border-box">
+        <div style="display: flex; gap: 6px; align-items: center" aria-hidden="true"><span class="a-key a-key-sm">Ctrl</span><span class="a-key a-key-sm">Win</span><span style="font-size: 13px; color: var(--ink2); margin-left: 4px">tap</span></div>
+        <h3 style="margin: auto 0 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">Hands-free</h3>
+        <p style="margin: 0; font-size: 16px; line-height: 1.5; color: var(--ink2)">Tap once and keep talking. Tap again to finish, Esc to throw it away.</p>
+      </div>
+      <div class="a-rise a-card" style="background: var(--surface); border-radius: 24px; padding: 32px; display: flex; flex-direction: column; gap: 14px; min-height: 250px; box-sizing: border-box">
+        <div style="display: flex; gap: 6px; align-items: center" aria-hidden="true"><span class="a-key a-key-sm">Ctrl</span><span class="a-key a-key-sm">Win</span><span class="a-key a-key-sm">Alt</span></div>
+        <h3 style="margin: auto 0 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em">Out of the way</h3>
+        <p style="margin: 0; font-size: 16px; line-height: 1.5; color: var(--ink2)">Playing a game? Hide FlowLocal completely. The same keys, or its tray icon, bring it back.</p>
+      </div>
+  </div>
+</section>
+
+<!-- features -->
+<section class="a-wrap" style="padding-top: 150px">
+  <h2 class="a-h2 a-rise" style="margin: 0 0 12px; font-size: 56px; line-height: 1.02; font-weight: 600; letter-spacing: -0.035em; text-align: center">Everything it does.</h2>
+  <p class="a-rise" style="margin: 0 auto 52px; max-width: 600px; text-align: center; font-size: 19px; line-height: 1.5; color: var(--ink2)">Every feature below is in the app today — and every one of them runs on your PC.</p>
+  <div class="a-groups">
+      <div class="a-rise a-card" style="background: var(--surface); border-radius: 24px; padding: 30px; box-sizing: border-box">
+        <div style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink2)">Speak naturally</div>
+        <h3 style="margin: 6px 0 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">Talk the way you talk.</h3>
+        <div style="display: flex; flex-direction: column; margin-top: 18px">
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Fillers disappear</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">“Um”, “uh”, “eee” and stutters are removed — by simple rules, without an extra AI model.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Voice commands</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">“New line”, “new paragraph”, “delete that”.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Say “send”</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">End a dictation with “send” and Enter is pressed for you — per app, if you like.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Snippets</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">“My email” becomes your address; any phrase can expand to any text.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Numbers as digits</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">Spoken Turkish numbers are written as digits: “on beş” → 15.</div>
+          </div>
+        </div>
+      </div>
+      <div class="a-rise a-card" style="background: var(--surface); border-radius: 24px; padding: 30px; box-sizing: border-box">
+        <div style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink2)">Never lose a word</div>
+        <h3 style="margin: 6px 0 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">Nothing slips through.</h3>
+        <div style="display: flex; flex-direction: column; margin-top: 18px">
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">First word never clipped</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">The microphone is ready before you press, and keeps the half second before it.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Keep talking</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">Start the next dictation while the last one is still being written — it is queued, not lost.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Lands where you started</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">Switch apps or tabs and the text still goes to the right box, or waits until you are back.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Long thoughts, short waits</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">Long dictations are transcribed in pieces while you are still speaking.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Paste it again</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">Shift + Alt + Z types the last dictation once more; Shift + Alt + X copies it.</div>
+          </div>
+        </div>
+      </div>
+      <div class="a-rise a-card" style="background: var(--surface); border-radius: 24px; padding: 30px; box-sizing: border-box">
+        <div style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink2)">Learns you</div>
+        <h3 style="margin: 6px 0 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">It gets your words right.</h3>
+        <div style="display: flex; flex-direction: column; margin-top: 18px">
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Your vocabulary</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">Names, products and jargon are spelled the way you write them.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Learns from corrections</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">Fix a word after dictating and FlowLocal remembers it next time.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Per-app profiles</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">A different language, digits or “send” for each app.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">24 languages</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">Pick a main language; engines trained for a single language are one click away.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Your stats</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">Words dictated this week and the time it saved you over typing.</div>
+          </div>
+        </div>
+      </div>
+      <div class="a-rise a-card" style="background: var(--surface); border-radius: 24px; padding: 30px; box-sizing: border-box">
+        <div style="font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink2)">Respects your PC</div>
+        <h3 style="margin: 6px 0 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em">Light on your machine.</h3>
+        <div style="display: flex; flex-direction: column; margin-top: 18px">
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Frees the GPU when idle</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">The model leaves graphics memory after a quiet stretch and comes back when you talk.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Steps aside for games</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">Ctrl + Win + Alt hides it completely; full-screen games are left alone.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Never types passwords</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">Password fields are skipped — nothing is typed or copied there.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">No phantom text</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">The “thanks for watching” lines speech models invent in silence are filtered out.</div>
+          </div>
+          <div style="padding: 14px 0; border-top: 1px solid var(--line)">
+            <div style="font-size: 16px; font-weight: 600">Picks itself up</div>
+            <div style="font-size: 15px; line-height: 1.5; color: var(--ink2); margin-top: 3px">If it ever crashes, Windows restarts it. Works in terminals too.</div>
+          </div>
+        </div>
+      </div>
+  </div>
+</section>
+
+<!-- themes -->
+<section class="a-wrap" style="padding-top: 150px">
+  <h2 class="a-h2 a-rise" style="margin: 0 0 12px; font-size: 48px; line-height: 1.05; font-weight: 600; letter-spacing: -0.03em; text-align: center">Four looks. One tiny pill.</h2>
+  <p class="a-rise" style="margin: 0 auto 44px; max-width: 560px; text-align: center; font-size: 18px; line-height: 1.5; color: var(--ink2)">Dark, Liquid Glass, Light or Aurora. It sits above the taskbar on whichever screen you are working on — and steps aside for full-screen games.</p>
+  <div class="a-four">
+      <div class="a-rise" style="border-radius: 22px; height: 190px; background: #1B1B1D; position: relative; overflow: hidden"><div style="position: absolute; left: 50%; top: 58px; transform: translateX(-50%); height: 30px; padding: 0 5px; border-radius: 999px; background: #000; border: 1px solid rgba(255,255,255,.1); display: flex; align-items: center; gap: 2.5px" aria-hidden="true"><span class="a-bar" style="height:5px;animation-delay:0s"></span><span class="a-bar" style="height:9px;animation-delay:-0.13s"></span><span class="a-bar" style="height:13px;animation-delay:-0.26s"></span><span class="a-bar" style="height:8px;animation-delay:-0.39s"></span><span class="a-bar" style="height:14px;animation-delay:-0.52s"></span><span class="a-bar" style="height:10px;animation-delay:-0.65s"></span><span class="a-bar" style="height:7px;animation-delay:-0.78s"></span><span class="a-bar" style="height:11px;animation-delay:0s"></span><span class="a-bar" style="height:5px;animation-delay:-0.13s"></span></div><div style="position: absolute; left: 18px; bottom: 16px; font-size: 15px; font-weight: 600; color: #F5F5F7">Dark</div></div>
+      <div class="a-rise" style="border-radius: 22px; height: 190px; background: linear-gradient(135deg, #8EC5FC, #E0C3FC); position: relative; overflow: hidden"><div style="position: absolute; left: 50%; top: 58px; transform: translateX(-50%); height: 30px; padding: 0 10px; border-radius: 999px; background: rgba(255,255,255,.42); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,.8); box-shadow: inset 0 1px 0 rgba(255,255,255,.9); display: flex; align-items: center; gap: 2.5px" aria-hidden="true"><span class="a-bar" style="height:5px;background:#1D1D1F;animation-delay:0s"></span><span class="a-bar" style="height:9px;background:#1D1D1F;animation-delay:-0.13s"></span><span class="a-bar" style="height:13px;background:#1D1D1F;animation-delay:-0.26s"></span><span class="a-bar" style="height:8px;background:#1D1D1F;animation-delay:-0.39s"></span><span class="a-bar" style="height:14px;background:#1D1D1F;animation-delay:-0.52s"></span><span class="a-bar" style="height:10px;background:#1D1D1F;animation-delay:-0.65s"></span><span class="a-bar" style="height:7px;background:#1D1D1F;animation-delay:-0.78s"></span><span class="a-bar" style="height:11px;background:#1D1D1F;animation-delay:0s"></span><span class="a-bar" style="height:5px;background:#1D1D1F;animation-delay:-0.13s"></span></div><div style="position: absolute; left: 18px; bottom: 16px; font-size: 15px; font-weight: 600; color: #1D1D1F">Liquid Glass</div></div>
+      <div class="a-rise" style="border-radius: 22px; height: 190px; background: #F5F5F7; position: relative; overflow: hidden; border: 1px solid var(--line); box-sizing: border-box"><div style="position: absolute; left: 50%; top: 58px; transform: translateX(-50%); height: 30px; padding: 0 10px; border-radius: 999px; background: #FFFFFF; border: 1px solid #D2D2D7; box-shadow: 0 4px 12px rgba(0,0,0,.08); display: flex; align-items: center; gap: 2.5px" aria-hidden="true"><span class="a-bar" style="height:5px;background:#1D1D1F;animation-delay:0s"></span><span class="a-bar" style="height:9px;background:#1D1D1F;animation-delay:-0.13s"></span><span class="a-bar" style="height:13px;background:#1D1D1F;animation-delay:-0.26s"></span><span class="a-bar" style="height:8px;background:#1D1D1F;animation-delay:-0.39s"></span><span class="a-bar" style="height:14px;background:#1D1D1F;animation-delay:-0.52s"></span><span class="a-bar" style="height:10px;background:#1D1D1F;animation-delay:-0.65s"></span><span class="a-bar" style="height:7px;background:#1D1D1F;animation-delay:-0.78s"></span><span class="a-bar" style="height:11px;background:#1D1D1F;animation-delay:0s"></span><span class="a-bar" style="height:5px;background:#1D1D1F;animation-delay:-0.13s"></span></div><div style="position: absolute; left: 18px; bottom: 16px; font-size: 15px; font-weight: 600; color: #1D1D1F">Light</div></div>
+      <div class="a-rise" style="border-radius: 22px; height: 190px; background: #0E0B1A; position: relative; overflow: hidden"><div style="position: absolute; left: 50%; top: 58px; transform: translateX(-50%); height: 30px; padding: 0 10px; border-radius: 999px; background: #120E22; border: 1.5px solid transparent; background-image: linear-gradient(#120E22, #120E22), linear-gradient(120deg, #13B5D6, #7B61FF, #E0558E); background-origin: border-box; background-clip: padding-box, border-box; display: flex; align-items: center; gap: 2.5px" aria-hidden="true"><span class="a-bar" style="height:5px;animation-delay:0s"></span><span class="a-bar" style="height:9px;animation-delay:-0.13s"></span><span class="a-bar" style="height:13px;animation-delay:-0.26s"></span><span class="a-bar" style="height:8px;animation-delay:-0.39s"></span><span class="a-bar" style="height:14px;animation-delay:-0.52s"></span><span class="a-bar" style="height:10px;animation-delay:-0.65s"></span><span class="a-bar" style="height:7px;animation-delay:-0.78s"></span><span class="a-bar" style="height:11px;animation-delay:0s"></span><span class="a-bar" style="height:5px;animation-delay:-0.13s"></span></div><div style="position: absolute; left: 18px; bottom: 16px; font-size: 15px; font-weight: 600; color: #EDEDF3">Aurora</div></div>
+  </div>
+</section>
+
+<!-- languages -->
+<section id="languages" style="padding-top: 150px; overflow: hidden">
+  <div class="a-wrap" style="text-align: center">
+    <h2 class="a-h2 a-rise" style="margin: 0; font-size: 56px; line-height: 1.02; font-weight: 600; letter-spacing: -0.035em">Speaks your language.</h2>
+    <p class="a-rise" style="margin: 18px auto 40px; max-width: 640px; font-size: 19px; line-height: 1.5; color: var(--ink2)">Pick a main language; FlowLocal tells it apart from English by itself. Engines trained for a single language are one click away inside the app.</p>
+  </div>
+  <div class="a-drift-l" aria-hidden="true" style="display: flex; gap: 12px; white-space: nowrap; width: max-content"><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">English</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">Türkçe</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">Русский</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">Español</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">Italiano</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">Deutsch</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">Français</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">Português</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">日本語</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">한국어</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">中文</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">हिन्दी</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">English</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">Türkçe</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">Русский</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">Español</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">Italiano</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px">Deutsch</span></div>
+  <div class="a-drift-r" aria-hidden="true" style="display: flex; gap: 12px; white-space: nowrap; width: max-content; margin-top: 12px"><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Polski</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Nederlands</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Українська</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Svenska</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Čeština</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Ελληνικά</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Română</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Magyar</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">فارسی</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">עברית</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Bahasa Indonesia</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Tiếng Việt</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Polski</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Nederlands</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Українська</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Svenska</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Čeština</span><span style="border: 1px solid var(--line); border-radius: 999px; padding: 12px 22px; font-size: 20px; color: var(--ink2)">Ελληνικά</span></div>
+  <p style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">English, Türkçe, Русский, Español, Italiano, Deutsch, Français, Português, 日本語, 한국어, 中文, हिन्दी, Polski, Nederlands, Українська, Svenska, Čeština, Ελληνικά, Română, Magyar, فارسی, עברית, Bahasa Indonesia, Tiếng Việt</p>
+</section>
+
+<!-- download -->
+<section id="download" class="a-wrap a-dlsec" style="padding-top: 150px; padding-bottom: 120px">
+  <h2 class="a-h2 a-rise" style="margin: 0 0 36px; font-size: 64px; line-height: 1.02; font-weight: 600; letter-spacing: -0.04em; text-align: center">Get FlowLocal.</h2>
+  <div class="a-dl a-rise">
+    <div style="background: var(--surface); border-radius: 24px; padding: 36px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 15px; color: var(--ink2)">Windows</div>
+      <h3 style="margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -0.02em">Windows 10 and 11</h3>
+      <div style="font-size: 15px; line-height: 1.55; color: var(--ink2)">64-bit. A graphics card with Vulkan support is recommended; it also runs on the processor, more slowly. The speech model (0.5–1.7 GB) downloads once on first start — after that, no internet needed.</div>
+      <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 8px">
+        <a class="a-btn" href="[DOWNLOAD_URL]">Download [FlowLocal-Setup.exe]</a>
+        <span style="font-size: 13px; color: var(--ink2)">Free · [size] · version [0.3.0]</span>
+      </div>
+    </div>
+    <div style="border: 1px solid var(--line); border-radius: 24px; padding: 36px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 15px; color: var(--ink2)">Linux</div>
+      <h3 style="margin: 0; font-size: 24px; font-weight: 600">Planned</h3>
+      <div style="font-size: 15px; line-height: 1.5; color: var(--ink2)">Ubuntu is next on the list.</div>
+    </div>
+    <div style="border: 1px solid var(--line); border-radius: 24px; padding: 36px; display: flex; flex-direction: column; gap: 10px">
+      <div style="font-size: 15px; color: var(--ink2)">macOS</div>
+      <h3 style="margin: 0; font-size: 24px; font-weight: 600">Not yet</h3>
+      <div style="font-size: 15px; line-height: 1.5; color: var(--ink2)">Tell us if you would use it.</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- footer -->
+<footer style="border-top: 1px solid var(--line)">
+  <div class="a-wrap" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 28px; padding-bottom: 40px; font-size: 13px; color: var(--ink2)">
+    <span>FlowLocal · built on OpenAI Whisper, whisper.cpp and Whisper.net</span>
+    <span>© 2026 [Your name]</span>
+  </div>
+</footer>
+
+<!-- floating pill (hidden from assistive tech; decorative) -->
+<div class="a-float" aria-hidden="true">
+  <div class="a-float-idle"></div>
+  <div class="a-float-rec">
+    <span style="width: 26px; height: 26px; border-radius: 999px; background: #4D4D4D; display: inline-flex; align-items: center; justify-content: center"><svg width="8" height="8" viewBox="0 0 8 8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l6 6M7 1L1 7"></path></svg></span>
+    <span style="display: flex; align-items: center; gap: 3px; height: 20px"><span class="a-bar" style="height:6px;animation-delay:0s"></span><span class="a-bar" style="height:10px;animation-delay:-0.13s"></span><span class="a-bar" style="height:16px;animation-delay:-0.26s"></span><span class="a-bar" style="height:12px;animation-delay:-0.39s"></span><span class="a-bar" style="height:20px;animation-delay:-0.52s"></span><span class="a-bar" style="height:14px;animation-delay:-0.65s"></span><span class="a-bar" style="height:8px;animation-delay:-0.78s"></span><span class="a-bar" style="height:18px;animation-delay:0s"></span><span class="a-bar" style="height:12px;animation-delay:-0.13s"></span><span class="a-bar" style="height:16px;animation-delay:-0.26s"></span><span class="a-bar" style="height:9px;animation-delay:-0.39s"></span><span class="a-bar" style="height:13px;animation-delay:-0.52s"></span><span class="a-bar" style="height:7px;animation-delay:-0.65s"></span><span class="a-bar" style="height:5px;animation-delay:-0.78s"></span></span>
+    <span style="width: 26px; height: 26px; border-radius: 999px; background: #FFFFFF; display: inline-flex; align-items: center; justify-content: center"><svg width="11" height="9" viewBox="0 0 10 8" fill="none" stroke="#000000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4l3 3 5-6"></path></svg></span>
+  </div>
+</div>
+
+</div>
+<script>
+(function(){
+  var d=document,h=d.documentElement;
+  var btn=d.getElementById('theme');
+  function sync(){btn.setAttribute('aria-pressed',h.getAttribute('data-theme')==='dark'?'true':'false')}
+  sync();
+  btn.addEventListener('click',function(){
+    var n=h.getAttribute('data-theme')==='dark'?'light':'dark';
+    h.setAttribute('data-theme',n);
+    // Only for this tab: every new visit opens in the browser's own light/dark setting.
+    try{sessionStorage.setItem('fl-theme',n)}catch(e){}
+    sync();
+  });
+  // Follow the system theme live, unless the visitor flipped it in this tab.
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(e){
+    var chosen;try{chosen=sessionStorage.getItem('fl-theme')}catch(x){}
+    if(chosen)return;
+    h.setAttribute('data-theme',e.matches?'dark':'light');
+    sync();
+  });
+
+  var fl=d.querySelector('.a-float'),dl=d.getElementById('download');
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(e){fl.classList.toggle('gone',e[0].isIntersecting)}).observe(dl);
+  }
+
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var native=window.CSS&&CSS.supports&&CSS.supports('animation-timeline','view()');
+  if(native||reduce||!('IntersectionObserver' in window))return;
+
+  h.classList.add('fb');
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:0.12});
+  [].forEach.call(d.querySelectorAll('.a-rise,.a-shot'),function(el){io.observe(el)});
+
+  var story=d.getElementById('how'),rev=d.getElementById('local');
+  var sw=[].slice.call(story.querySelectorAll('.a-word')),rw=[].slice.call(rev.querySelectorAll('.a-rword'));
+  // Same as the "contain 0%..100%" range: 0 when the section top hits the viewport top, 1 when its bottom hits the viewport bottom.
+  function prog(el){var r=el.getBoundingClientRect(),t=r.height-window.innerHeight;return t>0?Math.min(1,Math.max(0,-r.top/t)):0}
+  function words(list,p,len){list.forEach(function(w){w.classList.toggle('on',p>=parseFloat(w.getAttribute('data-s'))+len/2)})}
+  function tick(){
+    var p=prog(story),q=prog(rev);
+    story.style.setProperty('--p',p.toFixed(4));
+    rev.style.setProperty('--p',q.toFixed(4));
+    story.setAttribute('data-cap',p<0.22?'1':p<0.70?'2':'3');
+    story.classList.toggle('press',p>=0.10&&p<0.70);
+    fl.classList.toggle('rec',p>=0.13&&p<0.75);
+    words(sw,p,0.03);words(rw,q,0.04);
+  }
+  var busy=false;
+  function req(){if(!busy){busy=true;requestAnimationFrame(function(){busy=false;tick()})}}
+  window.addEventListener('scroll',req,{passive:true});
+  window.addEventListener('resize',req);
+  tick();
+})();
+</script>
+</body>
+</html>
